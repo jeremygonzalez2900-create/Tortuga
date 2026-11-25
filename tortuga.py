@@ -1,161 +1,174 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import altair as alt
 
-# 1. Configuración general de la página
+# 1. Configuración de la página estilo cómic / manga
 st.set_page_config(
-    page_title="Calculadora de Porcentajes Pro",
-    page_icon="📊",
+    page_title="Medidor de Poder - Saitama",
+    page_icon="👊",
     layout="wide"
 )
 
-# 2. Barra lateral (Sidebar) para controles globales
-with st.sidebar:
-    st.header("⚙️ Configuración")
-    moneda = st.selectbox("Selecciona tu moneda:", ["$", "€", "MXN $", "USD $"])
-    decimales = st.slider("Cantidad de decimales:", min_value=0, max_value=4, value=2)
-    st.divider()
-    st.info("Ajusta los valores en cada pestaña para ver los cálculos y gráficas en tiempo real.")
+# 2. Ícono SVG personalizado estilo Saitama + Encabezado
+saitama_svg = """
+<div style="display: flex; align-items: center; gap: 20px; background-color: #1E1E1E; padding: 20px; border-radius: 15px; border-left: 8px solid #FFD700;">
+    <svg width="85" height="95" viewBox="0 0 100 115" xmlns="http://w3.org">
+        <!-- Capa blanca y cuello negro -->
+        <path d="M15 110 Q50 90 85 110 L95 115 L5 115 Z" fill="#FFFFFF"/>
+        <rect x="35" y="80" width="30" height="20" fill="#FFE0BD"/>
+        <path d="M30 92 L70 92 L75 105 L25 105 Z" fill="#111111"/>
+        <!-- Cabeza calva brillante -->
+        <ellipse cx="50" cy="48" rx="30" ry="38" fill="#FFE0BD" stroke="#222" stroke-width="2.5"/>
+        <!-- Brillo de la calva -->
+        <ellipse cx="38" cy="24" rx="6" ry="11" transform="rotate(-25 38 24)" fill="#FFFFFF" opacity="0.85"/>
+        <!-- Ojos inexpresivos clásicos ("OK") -->
+        <ellipse cx="37" cy="48" rx="6" ry="3.5" fill="#FFFFFF" stroke="#111" stroke-width="2"/>
+        <circle cx="37" cy="48" r="1.5" fill="#111"/>
+        <ellipse cx="63" cy="48" rx="6" ry="3.5" fill="#FFFFFF" stroke="#111" stroke-width="2"/>
+        <circle cx="63" cy="48" r="1.5" fill="#111"/>
+        <!-- Cejas planas -->
+        <line x1="29" y1="41" x2="44" y2="41" stroke="#111" stroke-width="2"/>
+        <line x1="56" y1="41" x2="71" y2="41" stroke="#111" stroke-width="2"/>
+        <!-- Nariz y boca sencilla -->
+        <path d="M50 48 L48 58 L52 58" fill="none" stroke="#111" stroke-width="1.8"/>
+        <line x1="43" y1="68" x2="57" y2="68" stroke="#111" stroke-width="2"/>
+    </svg>
+    <div>
+        <h1 style="margin: 0; color: #FFD700; font-family: sans-serif;">👊 Gráfica de Crecimiento Exponencial: SAITAMA</h1>
+        <p style="margin: 5px 0 0 0; color: #CCCCCC; font-size: 16px;">
+            Simulador interactivo basado en el capítulo 168 del manga (Batalla en Ío, luna de Júpiter).
+        </p>
+    </div>
+</div>
+"""
+st.markdown(saitama_svg, unsafe_allow_html=True)
+st.write("")
 
-# 3. Encabezado principal
-st.title("📊 Calculadora Avanzada de Porcentajes")
-st.markdown("Herramienta interactiva para calcular **aumentos, descuentos, IVA y proyecciones**.")
-st.divider()
+# 3. Controles interactivos en columnas
+col_ctrl1, col_ctrl2, col_ctrl3 = st.columns(3)
 
-# 4. Organización en pestañas (Tabs)
-tab1, tab2, tab3 = st.tabs([
-    "🧮 Calculadora Rápida", 
-    "📈 Proyección de Crecimiento", 
-    "📋 Tabla Comparativa"
-])
-
-# ==========================================
-# PESTAÑA 1: CALCULADORA DE AUMENTO Y DESCUENTO
-# ==========================================
-with tab1:
-    st.subheader("Cálculo directo")
-    
-    # Dividimos la pantalla en dos columnas para los controles
-    col_input1, col_input2 = st.columns(2)
-    
-    with col_input1:
-        monto = st.number_input(
-            "Ingresa el valor base:", 
-            min_value=1.0, 
-            max_value=1000000.0, 
-            value=1000.0, 
-            step=50.0
-        )
-        
-    with col_input2:
-        porcentaje = st.slider(
-            "Selecciona el porcentaje (%):", 
-            min_value=1, 
-            max_value=100, 
-            value=10, 
-            step=1
-        )
-        
-    tipo_operacion = st.radio(
-        "¿Qué deseas calcular?",
-        ["Sumar porcentaje (Aumento / IVA)", "Restar porcentaje (Descuento)"],
-        horizontal=True
+with col_ctrl1:
+    segundos = st.slider(
+        "⏱️ Duración del combate (segundos):",
+        min_value=5,
+        max_value=30,
+        value=15,
+        step=1
     )
 
-    # Cálculos matemáticos
-    diferencia = monto * (porcentaje / 100)
-    
-    if "Sumar" in tipo_operacion:
-        resultado_final = monto + diferencia
-        texto_delta = f"+{porcentaje}% ({moneda}{diferencia:,.{decimales}f})"
-        color_delta = "normal"
-    else:
-        resultado_final = monto - diferencia
-        texto_delta = f"-{porcentaje}% (-{moneda}{diferencia:,.{decimales}f})"
-        color_delta = "inverse"
+with col_ctrl2:
+    factor_emocion = st.slider(
+        "🔥 Nivel de emoción / intensidad:",
+        min_value=1.2,
+        max_value=2.0,
+        value=1.55,
+        step=0.05
+    )
 
-    st.divider()
+with col_ctrl3:
+    escala_log = st.checkbox("Usar escala logarítmica", value=False)
 
-    # Mostrar resultados en tarjetas grandes (st.metric)
-    col_res1, col_res2, col_res3 = st.columns(3)
-    
-    with col_res1:
-        st.metric(
-            label="Monto Original", 
-            value=f"{moneda}{monto:,.{decimales}f}"
-        )
-    with col_res2:
-        st.metric(
-            label=f"Equivalente al {porcentaje}%", 
-            value=f"{moneda}{diferencia:,.{decimales}f}"
-        )
-    with col_res3:
-        st.metric(
-            label="Resultado Final", 
-            value=f"{moneda}{resultado_final:,.{decimales}f}", 
-            delta=texto_delta,
-            delta_color=color_delta
-        )
+# 4. Cálculo matemático del crecimiento exponencial
+tiempo = np.linspace(0, segundos, 100)
+poder_base = 100
 
-    # Resultado destacado en texto grande como pediste antes
-    st.success(f"### El resultado final con el {porcentaje}% aplicado es: **{moneda}{resultado_final:,.{decimales}f}**")
+# Curva de Saitama (crecimiento exponencial acelerado)
+poder_saitama = poder_base * (factor_emocion ** tiempo)
 
-# ==========================================
-# PESTAÑA 2: PROYECCIÓN DE INTERÉS / CRECIMIENTO
-# ==========================================
-with tab2:
-    st.subheader("Simulador de crecimiento acumulativo")
-    st.write("Visualiza cómo crece tu monto si aplicas ese porcentaje repetidamente durante varios periodos.")
-    
-    periodos = st.slider("Número de periodos (meses o años):", min_value=2, max_value=36, value=12)
-    
-    # Generar datos para la gráfica
-    datos_proyeccion = []
-    valor_actual = monto
-    
-    for p in range(0, periodos + 1):
-        datos_proyeccion.append({
-            "Periodo": p,
-            "Valor Acumulado": round(valor_actual, decimales),
-            "Monto Base": round(monto, decimales)
-        })
-        valor_actual = valor_actual + (valor_actual * (porcentaje / 100))
-        
-    df_proyeccion = pd.DataFrame(datos_proyeccion).set_index("Periodo")
-    
-    # Gráfica nativa de líneas
-    st.line_chart(df_proyeccion)
-    
-    valor_final_proy = datos_proyeccion[-1]["Valor Acumulado"]
-    st.markdown(f"#### Al final de **{periodos} periodos**, tu monto inicial crecerá a **{moneda}{valor_final_proy:,.{decimales}f}**.")
+# Curva de Garou Cósmico (intenta copiarlo pero siempre va un paso atrás)
+poder_garou = poder_base * ((factor_emocion - 0.12) ** tiempo)
 
-# ==========================================
-# PESTAÑA 3: TABLA DE PORCENTAJES COMUNES
-# ==========================================
-with tab3:
-    st.subheader(f"Tabla de referencia rápida para {moneda}{monto:,.{decimales}f}")
-    
-    porcentajes_comunes = [5, 10, 15, 16, 20, 25, 30, 50, 75]
-    filas_tabla = []
-    
-    for pct in porcentajes_comunes:
-        calc = monto * (pct / 100)
-        filas_tabla.append({
-            "Porcentaje": f"{pct}%",
-            "Monto del Porcentaje": f"{moneda}{calc:,.{decimales}f}",
-            "Total con Aumento (+)": f"{moneda}{monto + calc:,.{decimales}f}",
-            "Total con Descuento (-)": f"{moneda}{monto - calc:,.{decimales}f}"
-        })
-        
-    df_tabla = pd.DataFrame(filas_tabla)
-    
-    # Mostrar tabla interactiva ocupando todo el ancho
-    st.dataframe(df_tabla, use_container_width=True, hide_index=True)
-    
-    # Botón para descargar los datos en CSV
-    csv = df_tabla.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Descargar tabla en Excel / CSV",
-        data=csv,
-        file_name="tabla_porcentajes.csv",
-        mime="text/csv"
+df = pd.DataFrame({
+    "Tiempo (s)": np.concatenate([tiempo, tiempo]),
+    "Nivel de Poder": np.concatenate([poder_saitama, poder_garou]),
+    "Personaje": ["👊 Saitama (Crecimiento Exponencial)"] * len(tiempo) + ["🌌 Garou Cósmico (Copia)"] * len(tiempo)
+})
+
+# Puntos clave para mostrar íconos en la gráfica
+puntos_clave = pd.DataFrame({
+    "Tiempo (s)": [0, segundos * 0.5, segundos],
+    "Nivel de Poder": [
+        poder_base,
+        poder_base * (factor_emocion ** (segundos * 0.5)),
+        poder_saitama[-1]
+    ],
+    "Icono": ["😐 Inicio", "⚡ Limitador Roto", "👊💥 ¡SERIOUS PUNCH!"]
+})
+
+# 5. Creación de la gráfica estilo manga con Altair
+tipo_escala = "log" if escala_log else "linear"
+
+linea_poder = alt.Chart(df).mark_line(strokeWidth=4).encode(
+    x=alt.X("Tiempo (s):Q", title="Tiempo transcurrido en combate (segundos)"),
+    y=alt.Y("Nivel de Poder:Q", title="Nivel de Poder Medido", scale=alt.Scale(type=tipo_escala)),
+    color=alt.Color(
+        "Personaje:N",
+        scale=alt.Scale(
+            domain=["👊 Saitama (Crecimiento Exponencial)", "🌌 Garou Cósmico (Copia)"],
+            range=["#FFD700", "#00E5FF"]
+        ),
+        legend=alt.Legend(orient="top", title=None)
+    ),
+    tooltip=["Personaje", "Tiempo (s)", "Nivel de Poder"]
+)
+
+# Capa de puntos con íconos y etiquetas sobre la curva de Saitama
+etiquetas_iconos = alt.Chart(puntos_clave).mark_text(
+    align="right",
+    baseline="bottom",
+    dx=-8,
+    dy=-8,
+    fontSize=15,
+    fontWeight="bold",
+    color="#FFFFFF"
+).encode(
+    x="Tiempo (s):Q",
+    y="Nivel de Poder:Q",
+    text="Icono:N"
+)
+
+puntos_marcadores = alt.Chart(puntos_clave).mark_circle(size=120, color="#FF3D00").encode(
+    x="Tiempo (s):Q",
+    y="Nivel de Poder:Q"
+)
+
+grafica_final = (linea_poder + puntos_marcadores + etiquetas_iconos).properties(
+    height=480,
+    title="Comparativa de Evolución de Poder en Tiempo Real"
+).configure_view(
+    strokeWidth=0
+)
+
+# 6. Mostrar gráfica y métricas finales
+st.altair_chart(grafica_final, use_container_width=True)
+
+st.divider()
+
+# Tarjetas de resumen inferior
+m1, m2, m3 = st.columns(3)
+poder_final_saitama = poder_saitama[-1]
+poder_final_garou = poder_garou[-1]
+diferencia_veces = poder_final_saitama / poder_final_garou
+
+with m1:
+    st.metric(
+        label="👊 Poder Final de Saitama",
+        value=f"{poder_final_saitama:,.0f} pts",
+        delta=f"x{poder_final_saitama / poder_base:,.1f} respecto al inicio"
+    )
+
+with m2:
+    st.metric(
+        label="🌌 Poder Final de Garou",
+        value=f"{poder_final_garou:,.0f} pts",
+        delta="Incapaz de alcanzarlo",
+        delta_color="off"
+    )
+
+with m3:
+    st.metric(
+        label="🚀 Ventaja de Saitama",
+        value=f"{diferencia_veces:,.1f} veces más fuerte",
+        delta="Crecimiento infinito"
     )
