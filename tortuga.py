@@ -3,172 +3,216 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
-# 1. Configuración de la página estilo cómic / manga
+# 1. Configuración general de la página
 st.set_page_config(
-    page_title="Medidor de Poder - Saitama",
-    page_icon="👊",
+    page_title="Medidor de Poder - Xeno",
+    page_icon="💎",
     layout="wide"
 )
 
-# 2. Ícono SVG personalizado estilo Saitama + Encabezado
-saitama_svg = """
-<div style="display: flex; align-items: center; gap: 20px; background-color: #1E1E1E; padding: 20px; border-radius: 15px; border-left: 8px solid #FFD700;">
-    <svg width="85" height="95" viewBox="0 0 100 115" xmlns="http://w3.org">
-        <!-- Capa blanca y cuello negro -->
-        <path d="M15 110 Q50 90 85 110 L95 115 L5 115 Z" fill="#FFFFFF"/>
-        <rect x="35" y="80" width="30" height="20" fill="#FFE0BD"/>
-        <path d="M30 92 L70 92 L75 105 L25 105 Z" fill="#111111"/>
-        <!-- Cabeza calva brillante -->
-        <ellipse cx="50" cy="48" rx="30" ry="38" fill="#FFE0BD" stroke="#222" stroke-width="2.5"/>
-        <!-- Brillo de la calva -->
-        <ellipse cx="38" cy="24" rx="6" ry="11" transform="rotate(-25 38 24)" fill="#FFFFFF" opacity="0.85"/>
-        <!-- Ojos inexpresivos clásicos ("OK") -->
-        <ellipse cx="37" cy="48" rx="6" ry="3.5" fill="#FFFFFF" stroke="#111" stroke-width="2"/>
-        <circle cx="37" cy="48" r="1.5" fill="#111"/>
-        <ellipse cx="63" cy="48" rx="6" ry="3.5" fill="#FFFFFF" stroke="#111" stroke-width="2"/>
-        <circle cx="63" cy="48" r="1.5" fill="#111"/>
-        <!-- Cejas planas -->
-        <line x1="29" y1="41" x2="44" y2="41" stroke="#111" stroke-width="2"/>
-        <line x1="56" y1="41" x2="71" y2="41" stroke="#111" stroke-width="2"/>
-        <!-- Nariz y boca sencilla -->
-        <path d="M50 48 L48 58 L52 58" fill="none" stroke="#111" stroke-width="1.8"/>
-        <line x1="43" y1="68" x2="57" y2="68" stroke="#111" stroke-width="2"/>
+# 2. Banner con Ícono SVG personalizado de Xeno
+xeno_svg = """
+<div style="display: flex; align-items: center; gap: 20px; background: linear-gradient(90deg, #1a0b2e 0%, #3b0d36 50%, #0d2b45 100%); padding: 20px; border-radius: 15px; border-left: 8px solid #00E5FF; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+    <svg width="90" height="100" viewBox="0 0 100 110" xmlns="http://w3.org">
+        <!-- Aura energética exterior -->
+        <path d="M50 5 L68 30 L90 25 L80 55 L95 85 L50 100 L5 85 L20 55 L10 25 L32 30 Z" fill="#E0115F" opacity="0.35"/>
+        <path d="M50 12 L64 34 L82 30 L74 55 L86 80 L50 93 L14 80 L26 55 L18 30 L36 34 Z" fill="#00E5FF" opacity="0.45"/>
+        <!-- Cabello erizado estilo guerrero -->
+        <polygon points="50,10 35,35 65,35" fill="#111111"/>
+        <polygon points="25,22 38,42 20,48" fill="#111111"/>
+        <polygon points="75,22 62,42 80,48" fill="#111111"/>
+        <polygon points="18,45 35,52 22,65" fill="#111111"/>
+        <polygon points="82,45 65,52 78,65" fill="#111111"/>
+        <!-- Rostro -->
+        <path d="M30 40 L70 40 L65 75 L50 88 L35 75 Z" fill="#F5CBA7" stroke="#111" stroke-width="2"/>
+        <!-- Gema Diamante/Rubí en la frente -->
+        <polygon points="50,36 55,43 50,50 45,43" fill="#00E5FF" stroke="#FFFFFF" stroke-width="1.2"/>
+        <!-- Cejas intensas y ojos brillantes -->
+        <line x1="33" y1="53" x2="46" y2="57" stroke="#111" stroke-width="3"/>
+        <line x1="67" y1="53" x2="54" y2="57" stroke="#111" stroke-width="3"/>
+        <polygon points="35,57 45,59 42,63 35,61" fill="#E0115F"/>
+        <polygon points="65,57 55,59 58,63 65,61" fill="#E0115F"/>
+        <!-- Expresión seria -->
+        <line x1="43" y1="74" x2="57" y2="74" stroke="#111" stroke-width="2"/>
     </svg>
     <div>
-        <h1 style="margin: 0; color: #FFD700; font-family: sans-serif;">👊 Gráfica de Crecimiento Exponencial: SAITAMA</h1>
-        <p style="margin: 5px 0 0 0; color: #CCCCCC; font-size: 16px;">
-            Simulador interactivo basado en el capítulo 168 del manga (Batalla en Ío, luna de Júpiter).
+        <h1 style="margin: 0; color: #FFFFFF; font-family: sans-serif;">💎 Simulador de Poder: <span style="color: #00E5FF;">XENO</span></h1>
+        <p style="margin: 6px 0 0 0; color: #E0E0E0; font-size: 16px;">
+            Calcula su escala de poder combinando <b>Fase Rubí (x10)</b>, <b>Fase Diamante (x50)</b> y la técnica <b>Kaioken</b>.
         </p>
     </div>
 </div>
 """
-st.markdown(saitama_svg, unsafe_allow_html=True)
+st.markdown(xeno_svg, unsafe_allow_html=True)
 st.write("")
 
-# 3. Controles interactivos en columnas
-col_ctrl1, col_ctrl2, col_ctrl3 = st.columns(3)
+# 3. Panel de configuración de Xeno (Controles)
+st.subheader("⚙️ Configuración de Estado de Xeno")
+col1, col2, col3 = st.columns(3)
 
-with col_ctrl1:
-    segundos = st.slider(
-        "⏱️ Duración del combate (segundos):",
-        min_value=5,
-        max_value=30,
-        value=15,
-        step=1
+with col1:
+    poder_base = st.number_input(
+        "⚡ Poder Base de Xeno:",
+        min_value=1,
+        max_value=1000000000,
+        value=1000,
+        step=100
     )
 
-with col_ctrl2:
-    factor_emocion = st.slider(
-        "🔥 Nivel de emoción / intensidad:",
-        min_value=1.2,
-        max_value=2.0,
-        value=1.55,
-        step=0.05
+with col2:
+    fase = st.selectbox(
+        "🔮 Transformación activa:",
+        [
+            "Estado Base (x1)",
+            "Fase Rubí (x10)",
+            "Fase Diamante (x5 sobre Rubí = x50)"
+        ]
     )
 
-with col_ctrl3:
-    escala_log = st.checkbox("Usar escala logarítmica", value=False)
+with col3:
+    usar_kaioken = st.checkbox("🔥 Activar Kaioken", value=True)
+    if usar_kaioken:
+        nivel_kaioken = st.slider(
+            "Multiplicador Kaioken:",
+            min_value=2,
+            max_value=20,
+            value=2,
+            step=1,
+            format="x%d"
+        )
+    else:
+        nivel_kaioken = 1
 
-# 4. Cálculo matemático del crecimiento exponencial
-tiempo = np.linspace(0, segundos, 100)
-poder_base = 100
+# 4. Cálculos de multiplicadores
+if "Rubí" in fase:
+    mult_fase = 10
+    color_curva = "#E0115F"  # Rojo Rubí
+    icono_fase = "♦️ Rubí"
+elif "Diamante" in fase:
+    mult_fase = 10 * 5  # x10 del Rubí multiplicado x5 = x50
+    color_curva = "#00E5FF"  # Azul Diamante
+    icono_fase = "💎 Diamante"
+else:
+    mult_fase = 1
+    color_curva = "#FFD700"  # Dorado Base
+    icono_fase = "⚡ Base"
 
-# Curva de Saitama (crecimiento exponencial acelerado)
-poder_saitama = poder_base * (factor_emocion ** tiempo)
-
-# Curva de Garou Cósmico (intenta copiarlo pero siempre va un paso atrás)
-poder_garou = poder_base * ((factor_emocion - 0.12) ** tiempo)
-
-df = pd.DataFrame({
-    "Tiempo (s)": np.concatenate([tiempo, tiempo]),
-    "Nivel de Poder": np.concatenate([poder_saitama, poder_garou]),
-    "Personaje": ["👊 Saitama (Crecimiento Exponencial)"] * len(tiempo) + ["🌌 Garou Cósmico (Copia)"] * len(tiempo)
-})
-
-# Puntos clave para mostrar íconos en la gráfica
-puntos_clave = pd.DataFrame({
-    "Tiempo (s)": [0, segundos * 0.5, segundos],
-    "Nivel de Poder": [
-        poder_base,
-        poder_base * (factor_emocion ** (segundos * 0.5)),
-        poder_saitama[-1]
-    ],
-    "Icono": ["😐 Inicio", "⚡ Limitador Roto", "👊💥 ¡SERIOUS PUNCH!"]
-})
-
-# 5. Creación de la gráfica estilo manga con Altair
-tipo_escala = "log" if escala_log else "linear"
-
-linea_poder = alt.Chart(df).mark_line(strokeWidth=4).encode(
-    x=alt.X("Tiempo (s):Q", title="Tiempo transcurrido en combate (segundos)"),
-    y=alt.Y("Nivel de Poder:Q", title="Nivel de Poder Medido", scale=alt.Scale(type=tipo_escala)),
-    color=alt.Color(
-        "Personaje:N",
-        scale=alt.Scale(
-            domain=["👊 Saitama (Crecimiento Exponencial)", "🌌 Garou Cósmico (Copia)"],
-            range=["#FFD700", "#00E5FF"]
-        ),
-        legend=alt.Legend(orient="top", title=None)
-    ),
-    tooltip=["Personaje", "Tiempo (s)", "Nivel de Poder"]
-)
-
-# Capa de puntos con íconos y etiquetas sobre la curva de Saitama
-etiquetas_iconos = alt.Chart(puntos_clave).mark_text(
-    align="right",
-    baseline="bottom",
-    dx=-8,
-    dy=-8,
-    fontSize=15,
-    fontWeight="bold",
-    color="#FFFFFF"
-).encode(
-    x="Tiempo (s):Q",
-    y="Nivel de Poder:Q",
-    text="Icono:N"
-)
-
-puntos_marcadores = alt.Chart(puntos_clave).mark_circle(size=120, color="#FF3D00").encode(
-    x="Tiempo (s):Q",
-    y="Nivel de Poder:Q"
-)
-
-grafica_final = (linea_poder + puntos_marcadores + etiquetas_iconos).properties(
-    height=480,
-    title="Comparativa de Evolución de Poder en Tiempo Real"
-).configure_view(
-    strokeWidth=0
-)
-
-# 6. Mostrar gráfica y métricas finales
-st.altair_chart(grafica_final, use_container_width=True)
+multiplicador_total = mult_fase * nivel_kaioken
+poder_actual_xeno = poder_base * multiplicador_total
 
 st.divider()
 
-# Tarjetas de resumen inferior
-m1, m2, m3 = st.columns(3)
-poder_final_saitama = poder_saitama[-1]
-poder_final_garou = poder_garou[-1]
-diferencia_veces = poder_final_saitama / poder_final_garou
+# 5. Tarjetas de Resultados Instantáneos
+m1, m2, m3, m4 = st.columns(4)
 
 with m1:
     st.metric(
-        label="👊 Poder Final de Saitama",
-        value=f"{poder_final_saitama:,.0f} pts",
-        delta=f"x{poder_final_saitama / poder_base:,.1f} respecto al inicio"
+        label="⚡ Poder Base",
+        value=f"{poder_base:,.0f}"
     )
 
 with m2:
     st.metric(
-        label="🌌 Poder Final de Garou",
-        value=f"{poder_final_garou:,.0f} pts",
-        delta="Incapaz de alcanzarlo",
-        delta_color="off"
+        label="🔮 Bono de Fase",
+        value=f"x{mult_fase}",
+        delta=icono_fase
     )
 
 with m3:
     st.metric(
-        label="🚀 Ventaja de Saitama",
-        value=f"{diferencia_veces:,.1f} veces más fuerte",
-        delta="Crecimiento infinito"
+        label="🔥 Bono Kaioken",
+        value=f"x{nivel_kaioken}" if usar_kaioken else "Desactivado",
+        delta=f"Multiplicador total: x{multiplicador_total}"
     )
+
+with m4:
+    st.metric(
+        label="💥 PODER TOTAL DE XENO",
+        value=f"{poder_actual_xeno:,.0f}",
+        delta=f"+{((multiplicador_total - 1) * 100):,.0f}% de aumento"
+    )
+
+# 6. Gráfica Exponencial de Combate
+st.divider()
+st.subheader("📈 Curva de Despliegue Exponencial en Combate")
+
+col_g1, col_g2 = st.columns([3, 1])
+with col_g2:
+    segundos = st.slider("⏱️ Segundos de carga de Ki:", min_value=5, max_value=20, value=10)
+    escala_log = st.checkbox("Escala logarítmica", value=False)
+
+# Generación de la curva exponencial desde el poder base hasta el poder máximo alcanzado
+tiempo = np.linspace(0, segundos, 100)
+
+# Fórmula exponencial que parte exactamente de poder_base en t=0 y llega a poder_actual_xeno en t=segundos
+if multiplicador_total > 1:
+    tasa_crecimiento = (multiplicador_total) ** (1 / segundos)
+    curva_xeno = poder_base * (tasa_crecimiento ** tiempo)
+else:
+    curva_xeno = np.full_like(tiempo, poder_base, dtype=float)
+
+# Curva de referencia sin Kaioken para comparar el impacto de la técnica
+poder_sin_kaioken = poder_base * mult_fase
+if mult_fase > 1:
+    tasa_sin_kk = (mult_fase) ** (1 / segundos)
+    curva_sin_kaioken = poder_base * (tasa_sin_kk ** tiempo)
+else:
+    curva_sin_kaioken = np.full_like(tiempo, poder_base, dtype=float)
+
+df_grafica = pd.DataFrame({
+    "Tiempo (s)": np.concatenate([tiempo, tiempo]),
+    "Poder": np.concatenate([curva_xeno, curva_sin_kaioken]),
+    "Estado": [f"Xeno ({icono_fase} + Kaioken x{nivel_kaioken})"] * len(tiempo) + [f"Xeno ({icono_fase} sin Kaioken)"] * len(tiempo)
+})
+
+# Puntos clave de transformación en la gráfica
+puntos_hitos = pd.DataFrame({
+    "Tiempo (s)": [0, segundos * 0.45, segundos * 0.75, segundos],
+    "Poder": [
+        poder_base,
+        poder_base * (tasa_crecimiento ** (segundos * 0.45)) if multiplicador_total > 1 else poder_base,
+        poder_base * (tasa_crecimiento ** (segundos * 0.75)) if multiplicador_total > 1 else poder_base,
+        poder_actual_xeno
+    ],
+    "Etiqueta": [
+        f"⚡ Base ({poder_base:,.0f})",
+        "♦️ Rubí (x10)",
+        "💎 Diamante (x50)",
+        f"🔥 MAX: {poder_actual_xeno:,.0f}"
+    ]
+})
+
+tipo_escala = "log" if escala_log else "linear"
+
+linea = alt.Chart(df_grafica).mark_line(strokeWidth=4).encode(
+    x=alt.X("Tiempo (s):Q", title="Tiempo de elevación de Ki (segundos)"),
+    y=alt.Y("Poder:Q", title="Nivel de Poder", scale=alt.Scale(type=tipo_escala)),
+    color=alt.Color(
+        "Estado:N",
+        scale=alt.Scale(range=[color_curva, "#888888"]),
+        legend=alt.Legend(orient="top", title=None)
+    ),
+    tooltip=["Estado", "Tiempo (s)", "Poder"]
+)
+
+marcadores = alt.Chart(puntos_hitos).mark_circle(size=130, color="#FF3D00").encode(
+    x="Tiempo (s):Q",
+    y="Poder:Q"
+)
+
+textos = alt.Chart(puntos_hitos).mark_text(
+    align="right",
+    baseline="bottom",
+    dx=-10,
+    dy=-8,
+    fontSize=14,
+    fontWeight="bold",
+    color="#FFFFFF"
+).encode(
+    x="Tiempo (s):Q",
+    y="Poder:Q",
+    text="Etiqueta:N"
+)
+
+with col_g1:
+    st.altair_chart((linea + marcadores + textos).properties(height=430), use_container_width=True)
